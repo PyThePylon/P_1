@@ -4,24 +4,27 @@ using UnityEngine;
 
 public class Movement : MonoBehaviour
 {
-    public float moveSpeed = 5f;    
-    public float lookSpeedX = 2f;     
+    public float moveSpeed = 5f;        
+    public float sprintSpeed = 10f;    
+    public float lookSpeedX = 2f;      
     public float lookSpeedY = 2f;       
-    public Transform playerBody;        
+    public Transform playerBody;       
 
     private Camera playerCamera;       
-    private float rotationX = 0f;    
+    private float rotationX = 0f;      
 
-    public float bobSpeed = 5f;        
-    public float bobAmount = 0.05f;     
+    public float bobSpeed = 5f;         
+    public float bobAmount = 0.05f;    
 
     private Vector3 initialCameraPosition;  
 
+    public float speedMultiplier = 1f;
+
     void Start()
     {
-        playerCamera = Camera.main;     
+        playerCamera = Camera.main;    
         Cursor.lockState = CursorLockMode.Locked;  
-        Cursor.visible = false;         
+        Cursor.visible = false;        
 
         initialCameraPosition = playerCamera.transform.localPosition; 
     }
@@ -29,23 +32,31 @@ public class Movement : MonoBehaviour
     void Update()
     {
         // Get mouse input
-        float mouseX = Input.GetAxis("Mouse X") * lookSpeedX;  
-        float mouseY = Input.GetAxis("Mouse Y") * lookSpeedY;  
+        float mouseX = Input.GetAxis("Mouse X") * lookSpeedX; 
+        float mouseY = Input.GetAxis("Mouse Y") * lookSpeedY; 
 
         playerBody.Rotate(Vector3.up * mouseX);
 
         rotationX -= mouseY;
-        rotationX = Mathf.Clamp(rotationX, -90f, 90f);  
+        rotationX = Mathf.Clamp(rotationX, -90f, 90f); 
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0f, 0f);
 
-        float moveDirectionZ = Input.GetAxis("Vertical");
+        float moveDirectionZ = Input.GetAxis("Vertical");   
         float moveDirectionX = Input.GetAxis("Horizontal"); 
+
+        float currentMoveSpeed = moveSpeed;
+        if (Input.GetKey(KeyCode.LeftShift))  
+        {
+            currentMoveSpeed = sprintSpeed;
+        }
+
+        currentMoveSpeed *= speedMultiplier;
 
         Vector3 move = transform.right * moveDirectionX + transform.forward * moveDirectionZ;
 
-        transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+        transform.Translate(move * currentMoveSpeed * Time.deltaTime, Space.World);
 
-        if (move.magnitude > 0) // Only bob when the player is moving in any direction
+        if (move.magnitude > 0) 
         {
             float bob = Mathf.Sin(Time.time * bobSpeed) * bobAmount;
 
