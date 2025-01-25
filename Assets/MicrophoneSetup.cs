@@ -2,16 +2,18 @@ using UnityEngine;
 
 public class MicrophoneSetup : MonoBehaviour
 {
-    public string microphoneDevice; 
-    private AudioClip micClip;      
+    public string microphoneDevice;
+    private AudioClip micClip;
     private bool micInitialized = false;
 
     [Range(0, 1)]
-    public float volumeThreshold = 0.1f; 
-    private float[] audioData = new float[256]; 
+    public float volumeThreshold = 0.02f; 
+    private float[] audioData = new float[256];
 
-    public GameObject movingCube; 
-    public float moveSpeed = 3f;  
+    public AIController aiController;
+
+    private float noiseCooldown = 2f;
+    private float lastNoiseTime = -Mathf.Infinity;
 
     void Start()
     {
@@ -45,28 +47,20 @@ public class MicrophoneSetup : MonoBehaviour
 
             if (maxVolume > volumeThreshold)
             {
-                MoveCubeTowardsPlayer();
-            }
-            else
-            {
-                StopCubeMovement();
+                NotifyAI();
             }
         }
     }
 
-    void MoveCubeTowardsPlayer()
+    void NotifyAI()
     {
-        if (movingCube != null)
+        if (Time.time >= lastNoiseTime + noiseCooldown && aiController != null)
         {
-            Vector3 playerPosition = Camera.main.transform.position;
-
-            movingCube.transform.position = Vector3.MoveTowards(movingCube.transform.position, playerPosition, moveSpeed * Time.deltaTime);
+            Vector3 noisePosition = Camera.main.transform.position;
+            aiController.lastKnownPlayerPosition = noisePosition;
+            aiController.SwitchState(aiController.searchingState);
+            lastNoiseTime = Time.time;
         }
-    }
-
-    void StopCubeMovement()
-    {
- 
     }
 
     void OnDestroy()
